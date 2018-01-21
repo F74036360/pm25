@@ -2,6 +2,9 @@ package com.example.joan.myapplication;
 
 import android.*;
 import android.Manifest;
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,6 +16,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -42,9 +46,11 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
-public class InfoActivity extends FragmentActivity implements LocationListener  {
+public class InfoActivity extends FragmentActivity implements LocationListener {
     public int moved = 0;
 
     public Button Guardian;
@@ -55,10 +61,11 @@ public class InfoActivity extends FragmentActivity implements LocationListener  
     public TextView warningTextview;
     public TextToSpeech talk_obj;
     public int MY_DATA_CHECK_CODE = 2;
+    public static Location loc;
     private static final String gps_lat = "gps_lat";
     private static final String gps_lon = "gps_lon";
     private static final String pm25 = "s_d0";
-    public static Location loc;
+    private PendingIntent pendingIntent;
     LocationManager locationManager;
     String provider;
 
@@ -132,6 +139,19 @@ public class InfoActivity extends FragmentActivity implements LocationListener  
             if (location != null) onLocationChanged(location);
             else location = locationManager.getLastKnownLocation(provider);
 
+            // set daily alarm
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.HOUR_OF_DAY, 1);
+            calendar.set(Calendar.MINUTE, 13);
+            calendar.set(Calendar.SECOND, 0);
+
+            Intent notificationIntent = new Intent(InfoActivity.this, MyReceiver.class);
+            Log.v("InfoActivity", user_pm25);
+            notificationIntent.putExtra("pm2.5", user_pm25);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(InfoActivity.this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            AlarmManager am = (AlarmManager) InfoActivity.this.getSystemService(InfoActivity.this.ALARM_SERVICE);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+
         } else {
             Toast.makeText(getBaseContext(), "No Provider Found",
                     Toast.LENGTH_SHORT).show();
@@ -186,7 +206,7 @@ public class InfoActivity extends FragmentActivity implements LocationListener  
                 InputStream stream = connection.getInputStream();
                 reader = new BufferedReader(new InputStreamReader(stream));
                 StringBuffer buffer = new StringBuffer();
-                String line = "";
+                String line;
                 while ((line = reader.readLine()) != null) {
                     buffer.append(line);
                     Log.e("into back", "getpm25info");
@@ -209,7 +229,7 @@ public class InfoActivity extends FragmentActivity implements LocationListener  
                         if (Double.parseDouble(lass_pm25) > pm25_ori) {
                             pm25_ori = Double.parseDouble(lass_pm25);
                             Log.e("pm25", lass_pm25);
-                            user_pm25 = lass_pm25;
+                            return lass_pm25;
                         }
                     }
                 }
@@ -246,22 +266,22 @@ public class InfoActivity extends FragmentActivity implements LocationListener  
         warningTextview = (TextView) findViewById(R.id.warningmsg);
         if (user_pm25 != null) {
             double pm = Double.parseDouble(user_pm25);
-            if (pm <= 50 ) {
+            if (pm <= 50) {
                 textview.setText("pm2.5: " + user_pm25 + "  (良好)\n正常戶外活動。");
                 warningTextview.setText("自我防護措施\n1. 規律作息、多喝水、適當運動\n2.多吃深色蔬果");
-            } else if (pm > 50 && pm <= 100 ) {
+            } else if (pm > 50 && pm <= 100) {
                 textview.setText("pm2.5: " + user_pm25 + "  (普通)\n正常戶外活動。");
                 warningTextview.setText("自我防護措施\n1. 規律作息、多喝水、適當運動\n2.多吃深色蔬果\n3.洗手洗臉清洗鼻腔\n4.室外戴口罩、室內使用空氣清淨機");
-            } else if (pm > 100 && pm <= 150 ) {
+            } else if (pm > 100 && pm <= 150) {
                 textview.setText("pm2.5: " + user_pm25 + "  (對敏感族群不健康)");
                 warningTextview.setText("有心臟、呼吸道及心血管疾病的成人與孩童感受到癥狀時，應考慮減少體力消耗，特別是減少戶外活動。\n\n自我防護措施\n1. 規律作息、多喝水、適當運動\n2.多吃深色蔬果\n3.洗手洗臉清洗鼻腔\n4.室外戴口罩、室內使用空氣清淨機");
-            } else if (pm > 150 && pm <= 200 ) {
+            } else if (pm > 150 && pm <= 200) {
                 textview.setText("pm2.5: " + user_pm25 + "  (對所有族群不健康)");
                 warningTextview.setText("任何人如果有不適，如眼痛，咳嗽或喉嚨痛等，應該考慮減少戶外活動。\n有心臟、呼吸道及心血管疾病的成人與孩童，應減少體力消耗，特別是減少戶外活動。\n老年人應減少體力消耗。\n具有氣喘的人可能需增加使用吸入劑的頻率。\n\n自我防護措施\n1. 規律作息、多喝水、適當運動\n2.多吃深色蔬果\n3.洗手洗臉清洗鼻腔\n4.室外戴口罩、室內使用空氣清淨機");
-            } else if (pm > 201 && pm <= 300 ) {
+            } else if (pm > 201 && pm <= 300) {
                 textview.setText("pm2.5: " + user_pm25 + "  (非常不健康)");
                 warningTextview.setText("任何人如果有不適，如眼痛，咳嗽或喉嚨痛等，應該考慮減少戶外活動。\n有心臟、呼吸道及心血管疾病的成人與孩童，應減少體力消耗，特別是減少戶外活動。\n老年人應減少體力消耗。\n具有氣喘的人可能需增加使用吸入劑的頻率。\n\n自我防護措施\n1. 規律作息、多喝水、適當運動\n2.多吃深色蔬果\n3.洗手洗臉清洗鼻腔\n4.室外戴口罩、室內使用空氣清淨機");
-            } else if (pm > 301 && pm <= 500 ) {
+            } else if (pm > 301 && pm <= 500) {
                 textview.setText("pm2.5: " + user_pm25 + "  (危害)");
                 warningTextview.setText("任何人如果有不適，如眼痛，咳嗽或喉嚨痛等，應減少體力消耗，特別是減少戶外活動。\n有心臟、呼吸道及心血管的成人與孩童，以及老年人應避免體力消耗，特別是避免戶外活動。\n具有氣喘的人可能需增加使用吸入劑的頻率。\n\n自我防護措施\n1. 規律作息、多喝水、適當運動\n2.多吃深色蔬果\n3.洗手洗臉清洗鼻腔\n4.室外戴口罩、室內使用空氣清淨機");
             }
@@ -278,7 +298,13 @@ public class InfoActivity extends FragmentActivity implements LocationListener  
     public void onLocationChanged(Location location) {
         loc = location;
         String url = "https://pm25.lass-net.org/data/last-all-airbox.json";
-        new JsonTask().execute(url);
+        try {
+            user_pm25 = new JsonTask().execute(url).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
         setInfoText();
     }
 
@@ -349,24 +375,24 @@ public class InfoActivity extends FragmentActivity implements LocationListener  
     private void speakOut() {
         if (user_pm25 != null) {
             double pm = Double.parseDouble(user_pm25);
-            if (pm <= 50 ) {
-                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，空氣良好，可以從事正常戶外活動。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。";
-                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
-            } else if (pm > 50 && pm <= 100 ) {
+            if (pm <= 50) {
+                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，空氣良好，可以從事正常戶外活動，提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害";
+                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);
+            } else if (pm > 50 && pm <= 100) {
                 String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，空氣普通，可以從事正常戶外活動，提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害";
-                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
-            } else if (pm > 100 && pm <= 150 ) {
-                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，對敏感族群不健康，有心臟、呼吸道及心血管疾病的成人與孩童感受到癥狀時，應考慮減少體力消耗，特別是減少戶外活動。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。另外，外出時記得戴口罩，回家記得洗手洗臉清洗鼻腔，並搭配空氣清淨機，讓空污遠離你！";
-                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
-            } else if (pm > 150 && pm <= 200 ) {
-                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，對所有族群不健康。任何人如果有不適，如眼痛，咳嗽或喉嚨痛等，應該考慮減少戶外活動。有心臟、呼吸道及心血管疾病的成人與孩童，應減少體力消耗，特別是減少戶外活動。老年人應減少體力消耗，具有氣喘的人可能需增加使用吸入劑的頻率。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。另外，外出時記得戴口罩，回家記得洗手洗臉清洗鼻腔，並搭配空氣清淨機，讓空污遠離你！";
-                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
-            } else if (pm > 201 && pm <= 300 ) {
-                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，空氣非常不健康，任何人如果有不適，如眼痛，咳嗽或喉嚨痛等，應該考慮減少戶外活動。有心臟、呼吸道及心血管疾病的成人與孩童，應減少體力消耗，特別是減少戶外活動。老年人應減少體力消耗，具有氣喘的人可能需增加使用吸入劑的頻率。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。另外，外出時記得戴口罩，回家記得洗手洗臉清洗鼻腔，並搭配空氣清淨機，讓空污遠離你！";
-                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
-            } else if (pm > 301 && pm <= 500 ) {
-                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，空氣已達危害人體狀態，任何人如果有不適，如眼痛，咳嗽或喉嚨痛等，應減少體力消耗，特別是減少戶外活動。有心臟、呼吸道及心血管的成人與孩童，以及老年人應避免體力消耗，特別是避免戶外活動。具有氣喘的人可能需增加使用吸入劑的頻率。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。另外，外出時記得戴口罩，回家記得洗手洗臉清洗鼻腔，並搭配空氣清淨機，讓空污遠離你！";
-                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
+                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);
+            } else if (pm > 100 && pm <= 150) {
+                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，對敏感族群不健康，有心臟、呼吸道及心血管疾病的成人與孩童感受到癥狀時，應考慮減少體力消耗，特別是減少戶外活動，提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。另外，外出時記得戴口罩，回家記得洗手洗臉清洗鼻腔，並搭配空氣清淨機，讓空污遠離你";
+                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);
+            } else if (pm > 150 && pm <= 200) {
+                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，對所有族群不健康。任何人如果有不適，如眼痛，咳嗽或喉嚨痛等，應該考慮減少戶外活動，有心臟、呼吸道及心血管疾病的成人與孩童，應減少體力消耗，特別是減少戶外活動。老年人應減少體力消耗，具有氣喘的人可能需增加使用吸入劑的頻率。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。另外，外出時記得戴口罩，回家記得洗手洗臉清洗鼻腔，並搭配空氣清淨機，讓空污遠離你";
+                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);
+            } else if (pm > 201 && pm <= 300) {
+                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，空氣非常不健康，任何人如果有不適，如眼痛，咳嗽或喉嚨痛等，應該考慮減少戶外活動，有心臟、呼吸道及心血管疾病的成人與孩童，應減少體力消耗，特別是減少戶外活動。老年人應減少體力消耗，具有氣喘的人可能需增加使用吸入劑的頻率。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。另外，外出時記得戴口罩，回家記得洗手洗臉清洗鼻腔，並搭配空氣清淨機，讓空污遠離你";
+                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);
+            } else if (pm > 301 && pm <= 500) {
+                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，空氣已達危害人體狀態，任何人如果有不適，如眼痛，咳嗽或喉嚨痛等，應減少體力消耗，特別是減少戶外活動，有心臟、呼吸道及心血管的成人與孩童，以及老年人應避免體力消耗，特別是避免戶外活動。具有氣喘的人可能需增加使用吸入劑的頻率。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。另外，外出時記得戴口罩，回家記得洗手洗臉清洗鼻腔，並搭配空氣清淨機，讓空污遠離你";
+                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);
             }
         }
     }

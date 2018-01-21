@@ -353,7 +353,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 String line = "";
                 while ((line = reader.readLine()) != null) {
                     buffer.append(line);
-                    Log.e("into back", "yaaaa");
                 }
                 String result = buffer.toString();
                 JSONObject jObj = new JSONObject(result);
