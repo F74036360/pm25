@@ -141,8 +141,8 @@ public class InfoActivity extends FragmentActivity implements LocationListener {
 
             // set daily alarm
             Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.HOUR_OF_DAY, 1);
-            calendar.set(Calendar.MINUTE, 13);
+            calendar.set(Calendar.HOUR_OF_DAY, 8);
+            calendar.set(Calendar.MINUTE, 0);
             calendar.set(Calendar.SECOND, 0);
 
             Intent notificationIntent = new Intent(InfoActivity.this, MyReceiver.class);
