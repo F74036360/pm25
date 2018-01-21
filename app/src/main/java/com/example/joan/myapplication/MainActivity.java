@@ -49,17 +49,17 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class MainActivity extends FragmentActivity implements OnMapReadyCallback,GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,LocationListener {
-    public int moved=0;
+public class MainActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+    public int moved = 0;
     //用戶所在地的pm2.5值
     public String user_pm25;
     public static Context ctx;
-    public Button Taiwaninfo;
-    public TextToSpeech talk_obj;
     public Button Guardian;
-    public TextView textview;
+    public Button TaiwanInfo;
     public Button Listen;
-    public int MY_DATA_CHECK_CODE=2;
+    public TextToSpeech talk_obj;
+    public TextView textview;
+    public int MY_DATA_CHECK_CODE = 2;
     public static Location loc;
     public static GoogleMap mMap;
     private static final String gps_lat = "gps_lat";
@@ -67,6 +67,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private static final String pm25 = "s_d0";
     LocationManager locationManager;
     String provider;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,19 +78,30 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     0);
         }
         statusCheck();
-        ctx=getApplicationContext();
-        Taiwaninfo=(Button)findViewById(R.id.Taiwan);
-        Guardian=(Button)findViewById(R.id.Guardian);
-        Listen=(Button)findViewById(R.id.Listen);
+        ctx = getApplicationContext();
+        Guardian = (Button) findViewById(R.id.Guardian);
+        TaiwanInfo = (Button) findViewById(R.id.Taiwan);
+        Listen = (Button) findViewById(R.id.Listen);
 
-        Taiwaninfo.setOnClickListener(new View.OnClickListener() {
+        Guardian.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                moved=0;
+                moved = 0;
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, InfoActivity.class);
+                startActivity(intent);
+                MainActivity.this.finish();
+            }
+        });
+
+        TaiwanInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                moved = 0;
                 Intent intent = new Intent();
                 intent.setClass(MainActivity.this, MainActivity.class);
                 startActivity(intent);
@@ -100,19 +112,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         Listen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(user_pm25!=null){
+                if (user_pm25 != null) {
                     Intent checkIntent = new Intent();
                     checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
                     startActivityForResult(checkIntent, MY_DATA_CHECK_CODE);
                 }
-            }
-        });
-
-
-        Guardian.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
             }
         });
 
@@ -195,11 +199,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         // Getting reference to TextView tv_latitude
         //T/extView tvLatitude = (TextView) findViewById(R.id.tv_latitude);
         // Setting Current Longitude
-        loc=location;
-      //  tvLongitude.setText("Longitude:" + location.getLongitude());
+        loc = location;
+        //  tvLongitude.setText("Longitude:" + location.getLongitude());
         // Setting Current Latitude
-      //  tvLatitude.setText("Latitude:" + location.getLatitude());
-        String url="https://pm25.lass-net.org/data/last-all-airbox.json";
+        //  tvLatitude.setText("Latitude:" + location.getLatitude());
+        String url = "https://pm25.lass-net.org/data/last-all-airbox.json";
         new JsonTask().execute(url);
 
 
@@ -214,7 +218,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Check Permissions Now
             ActivityCompat.requestPermissions(this,
-                    new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     0);
         }
     }
@@ -259,7 +263,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                                     Log.e("TTS", "This Language is not supported");
                                 } else {
-                                    Taiwaninfo.setEnabled(true);
+                                    TaiwanInfo.setEnabled(true);
                                     Guardian.setEnabled(true);
                                     Listen.setEnabled(true);
                                     speakOut();
@@ -284,20 +288,17 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void speakOut()
-    {
-        if(Double.parseDouble(user_pm25)>=50)
-        {
-            String tex ="今日的懸浮微粒指數為 "+user_pm25+" ，請盡量減少外出";
+    private void speakOut() {
+        if (Double.parseDouble(user_pm25) >= 50) {
+            String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，請盡量減少外出";
             talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
         }
 
     }
+
     @Override
-    public void onDestroy()
-    {
-        if (talk_obj != null)
-        {
+    public void onDestroy() {
+        if (talk_obj != null) {
             talk_obj.stop();
             talk_obj.shutdown();
         }
@@ -306,24 +307,25 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap=googleMap;
+        mMap = googleMap;
         CameraPosition cameraPosition =
                 new CameraPosition.Builder()
-                        .target(new LatLng(loc.getLatitude(),loc.getLongitude()))
+                        .target(new LatLng(loc.getLatitude(), loc.getLongitude()))
                         .zoom(15)
                         .build();
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
     private class JsonTask extends AsyncTask<String, String, String> {
-        ArrayList<LatLng> alllatlng=new ArrayList<>();
-        ArrayList<String> allpm25=new ArrayList<>();
+        ArrayList<LatLng> alllatlng = new ArrayList<>();
+        ArrayList<String> allpm25 = new ArrayList<>();
+
         protected String doInBackground(String... params) {
-            Log.e("inot back","");
+            Log.e("inot back", "");
 
             HttpURLConnection connection = null;
             BufferedReader reader = null;
-            Double pm25_ori=0.0;
+            Double pm25_ori = 0.0;
             try {
                 URL url = new URL(params[0]);
                 connection = (HttpURLConnection) url.openConnection();
@@ -334,7 +336,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 String line = "";
                 while ((line = reader.readLine()) != null) {
                     buffer.append(line);
-                    Log.e("into back","yaaaa");
+                    Log.e("into back", "yaaaa");
                 }
                 String result = buffer.toString();
                 JSONObject jObj = new JSONObject(result);
@@ -344,19 +346,17 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
 
-                    Double lass_lat=Double.parseDouble( c.getString(gps_lat));
-                    Double lass_lon=Double.parseDouble( c.getString(gps_lon));
-                    alllatlng.add(new LatLng(lass_lat,lass_lon));
-                    String lass_pm25= c.getString(pm25);
+                    Double lass_lat = Double.parseDouble(c.getString(gps_lat));
+                    Double lass_lon = Double.parseDouble(c.getString(gps_lon));
+                    alllatlng.add(new LatLng(lass_lat, lass_lon));
+                    String lass_pm25 = c.getString(pm25);
                     allpm25.add(lass_pm25);
                     //抓到用戶所在地的pm2.5
-                    if(getDistance(lass_lat,lass_lon,loc.getLatitude(),loc.getLongitude())==1)
-                    {
-                        if(Double.parseDouble(lass_pm25)>pm25_ori)
-                        {
-                            pm25_ori=Double.parseDouble(lass_pm25);
-                            Log.e("pm25",lass_pm25);
-                            user_pm25=lass_pm25;
+                    if (getDistance(lass_lat, lass_lon, loc.getLatitude(), loc.getLongitude()) == 1) {
+                        if (Double.parseDouble(lass_pm25) > pm25_ori) {
+                            pm25_ori = Double.parseDouble(lass_pm25);
+                            Log.e("pm25", lass_pm25);
+                            user_pm25 = lass_pm25;
                         }
 
                     }
@@ -371,6 +371,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             return null;
 
         }
+
         private double rad(double d) {
             return d * Math.PI / 180.0;
         }
@@ -385,7 +386,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     + Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)));
             s = s * EARTH_RADIUS;
             s = Math.round(s * 10000) / 10000;
-            if(s<=10000)return 1;
+            if (s <= 10000) return 1;
             else return 0;
         }
 
@@ -393,67 +394,50 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
 
-            if(moved==0) moveMap(alllatlng,allpm25);
-            Log.e("user pm2.5",""+Double.parseDouble(user_pm25));
+            if (moved == 0) moveMap(alllatlng, allpm25);
+            Log.e("user pm2.5", "" + Double.parseDouble(user_pm25));
 
         }
     }
 
-    public void moveMap(ArrayList<LatLng> all_poi_latlng,ArrayList<String>pm25)
-    {
+    public void moveMap(ArrayList<LatLng> all_poi_latlng, ArrayList<String> pm25) {
         // 建立地圖攝影機的位置物件
-        moved=1;
-        Log.e("into movemap","GG");
+        moved = 1;
+        Log.e("into movemap", "GG");
         mMap.clear();
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         //Initialize Google Play Services
-        for(int i=0;i<all_poi_latlng.size();i++)
-        {
-            Double int_pm25=Double.parseDouble(pm25.get(i));
-            if(int_pm25<=11)
-            {
+        for (int i = 0; i < all_poi_latlng.size(); i++) {
+            Double int_pm25 = Double.parseDouble(pm25.get(i));
+            if (int_pm25 <= 11) {
                 mMap.addMarker(new MarkerOptions()
                         .position(all_poi_latlng.get(i)).icon(BitmapDescriptorFactory.defaultMarker(75))
                         .title(pm25.get(i)));
-            }
-            else if(int_pm25>11&&int_pm25<=23)
-            {
+            } else if (int_pm25 > 11 && int_pm25 <= 23) {
                 mMap.addMarker(new MarkerOptions()
                         .position(all_poi_latlng.get(i)).icon(BitmapDescriptorFactory.defaultMarker(100))
                         .title(pm25.get(i)));
-            }
-            else if(int_pm25>23&&int_pm25<=35)
-            {
+            } else if (int_pm25 > 23 && int_pm25 <= 35) {
                 mMap.addMarker(new MarkerOptions()
                         .position(all_poi_latlng.get(i)).icon(BitmapDescriptorFactory.defaultMarker(120))
                         .title(pm25.get(i)));
-            }
-            else if(int_pm25>35&&int_pm25<=41)
-            {
+            } else if (int_pm25 > 35 && int_pm25 <= 41) {
                 mMap.addMarker(new MarkerOptions()
                         .position(all_poi_latlng.get(i)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
                         .title(pm25.get(i)));
-            }
-            else if(int_pm25>42&&int_pm25<=53)
-            {
+            } else if (int_pm25 > 42 && int_pm25 <= 53) {
                 mMap.addMarker(new MarkerOptions()
                         .position(all_poi_latlng.get(i)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
                         .title(pm25.get(i)));
-            }
-            else if(int_pm25>53&&int_pm25<=58)
-            {
+            } else if (int_pm25 > 53 && int_pm25 <= 58) {
                 mMap.addMarker(new MarkerOptions()
                         .position(all_poi_latlng.get(i)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE))
                         .title(pm25.get(i)));
-            }
-            else if(int_pm25>58&&int_pm25<=70)
-            {
+            } else if (int_pm25 > 58 && int_pm25 <= 70) {
                 mMap.addMarker(new MarkerOptions()
                         .position(all_poi_latlng.get(i)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                         .title(pm25.get(i)));
-            }
-            else if(int_pm25>70)
-            {
+            } else if (int_pm25 > 70) {
                 mMap.addMarker(new MarkerOptions()
                         .position(all_poi_latlng.get(i)).icon(BitmapDescriptorFactory.defaultMarker(255))
                         .title(pm25.get(i)));
@@ -463,17 +447,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
         CameraPosition cameraPosition =
                 new CameraPosition.Builder()
-                        .target(new LatLng(loc.getLatitude(),loc.getLongitude()))
+                        .target(new LatLng(loc.getLatitude(), loc.getLongitude()))
                         .zoom(7)
                         .build();
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        textview=(TextView)findViewById(R.id.textView);
-        textview.setText("pm2.5: "+user_pm25+"  ");
+        textview = (TextView) findViewById(R.id.textView);
+        textview.setText("pm2.5: " + user_pm25 + "  ");
 
 
-        if(Double.parseDouble(user_pm25)>=50)
-        {
-            Toast.makeText(ctx,"今日的懸浮微粒指數為 "+user_pm25+"  ",Toast.LENGTH_LONG).show();
+        if (user_pm25 != null && Double.parseDouble(user_pm25) >= 50) {
+            Toast.makeText(ctx, "今日的懸浮微粒指數為 " + user_pm25 + "  ", Toast.LENGTH_LONG).show();
         }
     }
 
