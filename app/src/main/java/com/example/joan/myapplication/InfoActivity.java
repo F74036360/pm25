@@ -247,11 +247,11 @@ public class InfoActivity extends FragmentActivity implements LocationListener  
         if (user_pm25 != null) {
             double pm = Double.parseDouble(user_pm25);
             if (pm <= 50 ) {
-                textview.setText("pm2.5: " + user_pm25 + "  (良好)");
-                warningTextview.setText("正常戶外活動。\n\n自我防護措施\n1. 規律作息、多喝水、適當運動\n2.多吃深色蔬果");
+                textview.setText("pm2.5: " + user_pm25 + "  (良好)\n正常戶外活動。");
+                warningTextview.setText("自我防護措施\n1. 規律作息、多喝水、適當運動\n2.多吃深色蔬果");
             } else if (pm > 50 && pm <= 100 ) {
-                textview.setText("pm2.5: " + user_pm25 + "  (普通)");
-                warningTextview.setText("正常戶外活動\n\n自我防護措施\n1. 規律作息、多喝水、適當運動\n2.多吃深色蔬果\n3.洗手洗臉清洗鼻腔\n4.室外戴口罩、室內使用空氣清淨機");
+                textview.setText("pm2.5: " + user_pm25 + "  (普通)\n正常戶外活動。");
+                warningTextview.setText("自我防護措施\n1. 規律作息、多喝水、適當運動\n2.多吃深色蔬果\n3.洗手洗臉清洗鼻腔\n4.室外戴口罩、室內使用空氣清淨機");
             } else if (pm > 100 && pm <= 150 ) {
                 textview.setText("pm2.5: " + user_pm25 + "  (對敏感族群不健康)");
                 warningTextview.setText("有心臟、呼吸道及心血管疾病的成人與孩童感受到癥狀時，應考慮減少體力消耗，特別是減少戶外活動。\n\n自我防護措施\n1. 規律作息、多喝水、適當運動\n2.多吃深色蔬果\n3.洗手洗臉清洗鼻腔\n4.室外戴口罩、室內使用空氣清淨機");
@@ -347,11 +347,28 @@ public class InfoActivity extends FragmentActivity implements LocationListener  
     }
 
     private void speakOut() {
-        if (Double.parseDouble(user_pm25) >= 50) {
-            String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，請盡量減少外出";
-            talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
+        if (user_pm25 != null) {
+            double pm = Double.parseDouble(user_pm25);
+            if (pm <= 50 ) {
+                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，空氣良好，可以從事正常戶外活動。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。";
+                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
+            } else if (pm > 50 && pm <= 100 ) {
+                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，空氣普通，可以從事正常戶外活動，提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害";
+                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
+            } else if (pm > 100 && pm <= 150 ) {
+                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，對敏感族群不健康，有心臟、呼吸道及心血管疾病的成人與孩童感受到癥狀時，應考慮減少體力消耗，特別是減少戶外活動。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。另外，外出時記得戴口罩，回家記得洗手洗臉清洗鼻腔，並搭配空氣清淨機，讓空污遠離你！";
+                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
+            } else if (pm > 150 && pm <= 200 ) {
+                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，對所有族群不健康。任何人如果有不適，如眼痛，咳嗽或喉嚨痛等，應該考慮減少戶外活動。有心臟、呼吸道及心血管疾病的成人與孩童，應減少體力消耗，特別是減少戶外活動。老年人應減少體力消耗，具有氣喘的人可能需增加使用吸入劑的頻率。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。另外，外出時記得戴口罩，回家記得洗手洗臉清洗鼻腔，並搭配空氣清淨機，讓空污遠離你！";
+                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
+            } else if (pm > 201 && pm <= 300 ) {
+                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，空氣非常不健康，任何人如果有不適，如眼痛，咳嗽或喉嚨痛等，應該考慮減少戶外活動。有心臟、呼吸道及心血管疾病的成人與孩童，應減少體力消耗，特別是減少戶外活動。老年人應減少體力消耗，具有氣喘的人可能需增加使用吸入劑的頻率。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。另外，外出時記得戴口罩，回家記得洗手洗臉清洗鼻腔，並搭配空氣清淨機，讓空污遠離你！";
+                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
+            } else if (pm > 301 && pm <= 500 ) {
+                String tex = "今日的懸浮微粒指數為 " + user_pm25 + " ，空氣已達危害人體狀態，任何人如果有不適，如眼痛，咳嗽或喉嚨痛等，應減少體力消耗，特別是減少戶外活動。有心臟、呼吸道及心血管的成人與孩童，以及老年人應避免體力消耗，特別是避免戶外活動。具有氣喘的人可能需增加使用吸入劑的頻率。提醒您，規律飲食、多喝水、適當運動及多吃深色蔬果可以減少空氣污染的傷害。另外，外出時記得戴口罩，回家記得洗手洗臉清洗鼻腔，並搭配空氣清淨機，讓空污遠離你！";
+                talk_obj.speak(tex, TextToSpeech.QUEUE_FLUSH, null);//TextToSpeech.QUEUE_ADD 為目前的念完才念
+            }
         }
-
     }
 
     @Override
