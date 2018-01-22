@@ -141,7 +141,7 @@ public class InfoActivity extends FragmentActivity implements LocationListener {
 
             // set daily alarm
             Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.HOUR_OF_DAY, 8);
+            calendar.set(Calendar.HOUR_OF_DAY, 14);
             calendar.set(Calendar.MINUTE, 0);
             calendar.set(Calendar.SECOND, 0);
 
@@ -150,12 +150,13 @@ public class InfoActivity extends FragmentActivity implements LocationListener {
             notificationIntent.putExtra("pm2.5", user_pm25);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(InfoActivity.this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             AlarmManager am = (AlarmManager) InfoActivity.this.getSystemService(InfoActivity.this.ALARM_SERVICE);
-            am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_FIFTEEN_MINUTES, pendingIntent);
 
         } else {
             Toast.makeText(getBaseContext(), "No Provider Found",
                     Toast.LENGTH_SHORT).show();
         }
+
     }
 
     public void statusCheck() {
@@ -229,11 +230,11 @@ public class InfoActivity extends FragmentActivity implements LocationListener {
                         if (Double.parseDouble(lass_pm25) > pm25_ori) {
                             pm25_ori = Double.parseDouble(lass_pm25);
                             Log.e("pm25", lass_pm25);
-                            return lass_pm25;
+                            user_pm25 = lass_pm25;
                         }
                     }
                 }
-                return buffer.toString();
+                return user_pm25;
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (JSONException e) {

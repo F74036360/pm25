@@ -20,8 +20,7 @@ public class MyReceiver extends BroadcastReceiver {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         Intent intent1 = new Intent(context, InfoActivity.class);
         intent1.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        //if we want ring on notifcation then uncomment below line//
-//        Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
         String user_pm25 = intent.getStringExtra("pm2.5");
         String notificationMsg = null;
         Log.e("MyReceiver", user_pm25);
